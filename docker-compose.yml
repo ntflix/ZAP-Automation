@@ -24,8 +24,6 @@ services:
             ZAP_HOST: zaproxy
             ZAP_PORT: 8080
             ZAP_API_KEY: supersecretapikey
-        ports:
-            - 8956:5000
         networks:
             - zap-tier
 
