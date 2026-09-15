@@ -2,6 +2,7 @@ from zapv2 import ZAPv2
 import os
 import time
 from datetime import datetime
+import json
 
 TARGET = "https://example.com"
 API_KEY = os.getenv("ZAP_API_KEY")
@@ -69,6 +70,7 @@ print("Alerts: ")
 print(zap.core.alerts())
 
 timestamp = datetime.now().isoformat()
+json_output = json.dumps(zap.core.alerts())
 
 with open(f"/scanner_output/report.{timestamp}.json", "w") as file:
-    file.write(zap.core.alerts())
+    file.write(json_output)
