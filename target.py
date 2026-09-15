@@ -33,16 +33,16 @@ class Target:
         else:
             target = row[0]
 
-        if row[1] == "true":
-            should_spider = True
-        elif row[1] == "false":
+        if len(row) < 2 or row[1] == "false":
             should_spider = False
+        elif row[1] == "true":
+            should_spider = True
         else:
             raise ValueError(
                 f"CSV column 1 (second) value must be either `true` or `false`. Received `{row[0]}`."
             )
 
-        if row[2] == "passive":
+        if len(row) < 3 or row[2] == "passive":
             scan_type = ScanType.passive
         elif row[2] == "passive_and_active":
             scan_type = ScanType.passive_and_active

@@ -2,7 +2,7 @@
 
 A really simple ZAP automator using Docker Compose to keep things self-contained and semi-stateless (just run and output).
 
-Idea is to read a CSV of headers _target_, _whether to spider_ (`true` or `false`), and _scan type_ (`passive` or `passive_and_active`) and then use ZAP accordingly.
+Idea is to read a CSV of headers _target_, _whether to spider_ (`true` or `false`, optional, default `false`), and _scan type_ (`passive` or `passive_and_active`, optional, default `passive`) and then use ZAP accordingly.
 
 CSV format:
 
