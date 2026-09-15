@@ -1,6 +1,7 @@
 from zapv2 import ZAPv2
 import os
 import time
+from datetime import datetime
 
 TARGET = "https://example.com"
 API_KEY = os.getenv("ZAP_API_KEY")
@@ -66,3 +67,8 @@ print("Active Scan completed")
 print("Hosts: {}".format(", ".join(zap.core.hosts)))
 print("Alerts: ")
 print(zap.core.alerts())
+
+timestamp = datetime.now().isoformat()
+
+with open(f"/scanner_output/report.{timestamp}.json", "w") as file:
+    file.write(zap.core.alerts())
