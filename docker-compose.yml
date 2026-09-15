@@ -17,6 +17,9 @@ services:
             - type: bind
               source: ./scanner_output
               target: /scanner_output
+            - type: bind
+              source: ./targets.csv
+              target: /targets.csv
         environment:
             ZAP_HOST: zaproxy
             ZAP_PORT: 8080

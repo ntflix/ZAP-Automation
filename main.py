@@ -1,10 +1,15 @@
+from target import ScanType, Target, get_targets
 from zapv2 import ZAPv2
 import os
 import time
 from datetime import datetime
 import json
 
-TARGET = "https://example.com"
+TARGETS_FILE = "/targets.csv"
+targets = get_targets(TARGETS_FILE)
+
+print(f"Loaded {len(targets)} targets from {TARGETS_FILE}…")
+
 API_KEY = os.getenv("ZAP_API_KEY")
 ZAP_HOST = os.getenv("ZAP_HOST")
 zap_port = os.getenv("ZAP_PORT")
@@ -29,48 +34,56 @@ zap = ZAPv2(
 )
 
 
-# Proxy a request to the target so that ZAP has something to deal with
-print("Accessing target {}".format(TARGET))
-zap.urlopen(TARGET)
-# Give the sites tree a chance to get updated
-time.sleep(2)
-
-print("Spidering target {}".format(TARGET))
-scanid = zap.spider.scan(TARGET)
-# Give the Spider a chance to start
-time.sleep(2)
-while int(zap.spider.status(scanid)) < 100:
-    # Loop until the spider has finished
-    print(f"Spider progress: {zap.spider.status(scanid)}%")
+for TARGET in targets:
+    # Proxy a request to the target so that ZAP has something to deal with
+    print("Accessing target {}".format(TARGET.target))
+    zap.urlopen(TARGET.target)
+    # Give the sites tree a chance to get updated
     time.sleep(2)
 
-print("Spider completed")
+    if TARGET.should_spider:
+        print("Spidering target {}".format(TARGET.target))
+        scanid = zap.spider.scan(TARGET.target)
+        # Give the Spider a chance to start
+        time.sleep(2)
+        while int(zap.spider.status(scanid)) < 100:
+            # Loop until the spider has finished
+            print(f"Spider progress: {zap.spider.status(scanid)}%")
+            time.sleep(2)
 
-print(zap.spider.added_nodes(scanid))
+        print("Spider completed")
+        print(zap.spider.added_nodes(scanid))
 
-while int(zap.pscan.records_to_scan) > 0:
-    print("Records to passive scan : {}".format(zap.pscan.records_to_scan))
-    time.sleep(2)
+    while int(zap.pscan.records_to_scan) > 0:
+        print("Records to passive scan : {}".format(zap.pscan.records_to_scan))
+        time.sleep(2)
 
-print("Passive Scan completed")
+    print("Passive Scan completed")
 
-print("Active Scanning target {}".format(TARGET))
-scanid = zap.ascan.scan(TARGET)
-while int(zap.ascan.status(scanid)) < 100:
-    # Loop until the scanner has finished
-    print("Scan progress %: {}".format(zap.ascan.status(scanid)))
-    time.sleep(5)
+    if TARGET.scan_type == ScanType.passive_and_active:
+        print("Active Scanning target {}".format(TARGET.target))
+        scanid = zap.ascan.scan(TARGET.target)
+        while int(zap.ascan.status(scanid)) < 100:
+            # Loop until the scanner has finished
+            print("Scan progress %: {}".format(zap.ascan.status(scanid)))
+            time.sleep(5)
 
-print("Active Scan completed")
+        print("Active Scan completed")
 
-# Report the results
+    # Report the results
 
-print("Hosts: {}".format(", ".join(zap.core.hosts)))
-print("Alerts: ")
-print(zap.core.alerts())
+    print("Hosts: {}".format(", ".join(zap.core.hosts)))
+    print("Alerts: ")
+    print(zap.core.alerts())
 
-timestamp = datetime.now().isoformat()
-json_output = json.dumps(zap.core.alerts())
+    timestamp = datetime.now().isoformat()
+    json_output = json.dumps(zap.core.alerts())
 
-with open(f"/scanner_output/report.{timestamp}.json", "w") as file:
-    file.write(json_output)
+    target_filename_safe = "".join(
+        c for c in TARGET.target if c.isalpha() or c.isdigit() or c == " "
+    ).rstrip()
+
+    with open(
+        f"/scanner_output/report.{target_filename_safe}.{timestamp}.json", "w"
+    ) as file:
+        file.write(json_output)
